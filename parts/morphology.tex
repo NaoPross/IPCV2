@@ -1,0 +1,613 @@
+%!TEX root = ../DigPro2.tex
+\section{Morphological IP \textbook{635-698}}
+
+\subsection{Binary Morphology}
+
+\paragraph{Reflection\textbook{637}}
+\[
+	\hat{B} = \{w | w = -b,\quad \text{for} \quad b \in B \}.
+\]
+
+\paragraph{Translation\textbook{637}}
+\[
+	(B)_z = \{ c | c = b + z,\quad \text{for} \quad b \in B\}.
+\]
+
+\paragraph{Erosion\textbook{639}}
+With \(A\) and \(B\) as sets in \(\mathbb{Z}^2\), the erosion of \(A\) by \(B\) is defined as
+\[
+	A \ominus B = \{z|(B)_z \subseteq A  \}.
+\]
+This is the set of all translations by z such that the set B is still a subset of A.
+Equivalently, if B must be contained in A, it is not allowed to intersect with the background:
+\[
+	A \ominus B = \{z|(B)_z \cap A^c = \emptyset \}.
+\]
+
+
+\paragraph{Dilation\textbook{641}}
+With A and B as sets in $Z^2$, the dilation of A by B is defined as
+\[
+	A \oplus B = \{z |(\hat{B})_z \cap A \neq \emptyset \}.
+\]
+This is the set of all translations by z such that the set B reflected about its origin has at least one overlap with the set A.
+Equivalently, since the intersection is not allowed to be empty and all elements in it must be from A:
+\[
+	A \oplus B = \{z | [(\hat{B})_z \cap A] \subseteq A \}.
+\]
+
+\paragraph{Duality\textbook{644}}
+Erosion and dilation are dual:
+\begin{align*}
+	(A  \ominus B)^c &= A^c \oplus \hat{B}, &
+	(A \oplus B)^c &= A^c \ominus \hat{B}.
+\end{align*}
+
+\paragraph{Opening\textbook{644}}
+The opening of \(A\) by \(B\) is an erosion followed by a dilation:
+\[
+	A \circ B = (A \ominus B) \oplus B.
+\]
+It satisfies the following properties:
+\begin{enumerate}[label=\textbf{(\alph*)}]
+	\item $A \circ B \subseteq A$,
+	\item If $C \subseteq D$, then $C \circ B \subseteq D \circ B$,
+	\item $(A \circ B) \circ B = A \circ B$.
+\end{enumerate}
+
+\paragraph{Closing\textbook{644}}
+The closing of A by B is a dilation followed by erosion:
+\[
+	A  \bullet B = (A \oplus B) \ominus B.
+\]
+It satisfies the following properties:
+\begin{enumerate}[label=\textbf{(\alph*)}]
+	\item $A \subseteq A \bullet B$,
+	\item If $C \subseteq D$, then $C \bullet B \subseteq D \bullet B$,
+	\item $(A \bullet B) \bullet B = A \bullet B$.
+\end{enumerate}
+
+\paragraph{Duality\textbook{647}}
+Opening and closing are dual operations:
+\begin{align*}
+	(A  \bullet B)^c &= (A^c \circ \hat{B}), &=
+	(A \circ B)^c &= (A^c \bullet \hat{B}).
+\end{align*}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{.9\linewidth}
+		\centering
+		\adjustbox{width=\linewidth}{\input{figures/tikz/erosionanddilation/rolling_circle}}
+		\caption{Opening}
+	\end{subfigure}
+	\begin{subfigure}[b]{.9\linewidth}
+		\centering
+		\adjustbox{width=\linewidth}{\input{figures/tikz/erosionanddilation/rolling_circle_closing}}
+		\caption{Closing}
+	\end{subfigure}
+	\caption{Geometrical interpretation of the opening and closing transformations.}
+\end{figure}
+
+\subsection{The Hit-or-Miss Transform\textbook{648}}
+
+The hit-or-miss transform is a basic tool for shape detection. Basic idea:
+\begin{itemize}
+	\item Through erosion of the foreground by the object, possible locations for the object in the foreground are left, since elements smaller than the object disappear.
+
+	\item Through erosion of the background of the image with the local background of the object, possible locations for the object in the background are left.
+
+	\item The intersection of these possible locations result in a reliable  detection of the object location:
+	\[
+		A \circledast B = (A \ominus D) \cap [ A^c \ominus (W-D)].
+	\]
+
+	\item In general, if \(B_1\) is the object and \(B_2\) is the corresponding background this can be written
+	\[
+		A \circledast B = (A \ominus B_1)\cap (A^c \ominus B_2).
+	\]
+\end{itemize}
+
+\subsection{Some Basic Morphological Algorithms\textbook{652}}
+
+\subsubsection{Boundary Extraction\textbook{653}}
+
+\begin{multicols}{2}
+	\begin{center}
+		\adjustbox{height=1.5cm}{\input{figures/tikz/morphological/mask_all}}
+	\end{center}
+	\columnbreak
+	The mask leads to a 1 pixel thick boundary.
+	\begin{align*}
+		\beta(A) = A - (A\ominus B)
+	\end{align*}
+\end{multicols}
+
+\subsubsection{Hole Filling\textbook{653}}
+
+To fill a hole, a seed inside the connected border is needed, i.e. in an empty array $X_0$, the seed point is set to 1.
+\begin{multicols}{2}
+	\noindent
+	Usual mask:
+	\adjustbox{max width=1cm}{\input{figures/tikz/morphological/mask_cross}}
+	\columnbreak
+	\begin{align*}
+		X_k &= (X_{k-1}\oplus B)\cap I^c, \\ &\quad k = 1,2,3,\ldots
+	\end{align*}
+\end{multicols}
+The dilation is forced to stay inside the connected border with $\cap I^c$.
+The iteration can stop, when $X_k = X_{k-1}$.
+
+\subsubsection{Extraction of Connected Components\textbook{655}}
+
+An initial array $X_0$ contains a 1 in the region of the connected component. Then,
+\begin{align*}
+	X_k &= (X_{k-1} \oplus B)\cap I, & k&=1,2,3,\ldots,
+\end{align*}
+until iteration can stop when $X_k = X_{k-1}$.
+The mask below leads to 8-connected regions.
+\begin{center}
+	\adjustbox{max width=1cm}{\input{figures/tikz/morphological/mask_all}}
+\end{center}
+
+\subsubsection{Convex Hull $C(A)$\textbook{657}}
+
+A set $S$ of points in the Euclidean plane is said to be convex, if a straight line segment joining any two points in $S$ lies entirely within $S$.
+\begin{itemize}
+\item The convex hull $H$ of a set $S$ is the smallest convex set containing $S$.
+\item $H-S$ is called the convex deficiency of $S$.
+\end{itemize}
+The definitions above extend directly to digital sets. Following, an algorithm to obtain the convex hull of a set $A$ of foreground pixels, embedded in a binary image $I$.
+%The convex hull is constructed with a convex hull with four structuring elements. (x = don't care)
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}[b]{0.2\textwidth}
+		\centering
+		\adjustbox{scale=0.5}{\input{figures/tikz/morphological/convex_hull}}
+		\caption{$B^1$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=270}{\input{figures/tikz/morphological/convex_hull}}
+		\caption{$B^2$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=180}{\input{figures/tikz/morphological/convex_hull}}
+		\caption{$B^3$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=90}{\input{figures/tikz/morphological/convex_hull}}
+		\caption{$B^4$}
+	\end{subfigure}
+	\caption{Structuring elements for convex hull}
+\end{figure}
+
+\begin{align*}
+	X_0^i &= I \\
+	X_k^i &= (X_{k-1}^i \circledast B^i) \cup X_{k-1}^i \\
+	&\text{where } i =1,2,3,4 \text{ and } k=1,2,3,\ldots \\
+\end{align*}
+When  \(X_k^i = X_{k-1}^i \longrightarrow D^i = X_k^i\),
+\[
+	C(A) = \bigcup\limits_{i=1}^4 D_i.
+\]
+Note that the hit-or-miss transform $\circledast$ here is applied without background.
+
+This algorithm does not guarantee that the found convex set is the convex hull,
+which has to be the smallest convex set containing the original object The
+following additional constraints can be used:
+\begin{itemize}
+\item easiest is, that the convex hull is not allowed to grow beyond the original vertical and horizontal dimension
+\item More complex constraints are possible, but at a higher computational cost
+\end{itemize}
+
+\subsubsection{Thinning\textbook{660}}
+
+Thinning is the operation of making the foreground thinner.
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}[b]{\linewidth}
+		\centering
+		\adjustbox{width=.8\linewidth}{\input{figures/tikz/morphological/thinning_origin}}
+		\caption{Original image}
+	\end{subfigure}
+	\begin{subfigure}[b]{\linewidth}
+		\centering
+		\adjustbox{width=.8\linewidth}{\input{figures/tikz/morphological/thinning_thinned}}
+		\caption{Thinned image}
+	\end{subfigure}
+	\caption{Thinning}
+\end{figure}
+\[
+	A \otimes  B = A - (A \circledast B) = A \cap (A \circledast B)^c
+\]
+Hit-or-miss transformation with rotating structuring elements. Note that the hit-or-miss is applied without background.
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5}{\input{figures/tikz/morphological/thinning_mask_1}}
+		\caption{$B^1$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5}{\input{figures/tikz/morphological/thinning_mask_2}}
+		\caption{$B^2$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=270}{\input{figures/tikz/morphological/thinning_mask_1}}
+		\caption{$B^3$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=270}{\input{figures/tikz/morphological/thinning_mask_2}}
+		\caption{$B^4$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=180}{\input{figures/tikz/morphological/thinning_mask_1}}
+		\caption{$B^5$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=180}{\input{figures/tikz/morphological/thinning_mask_2}}
+		\caption{$B^6$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=90}{\input{figures/tikz/morphological/thinning_mask_1}}
+		\caption{$B^7$}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.1\textwidth}
+		\centering
+		\adjustbox{scale=0.5, angle=90}{\input{figures/tikz/morphological/thinning_mask_2}}
+		\caption{$B^8$}
+	\end{subfigure}
+	\caption{Thinning masks}
+\end{figure}
+	\[
+		A \otimes  \{B\} = ((\ldots((A \otimes B^{1}) \otimes B^{2})\ldots) \otimes B^{n})
+	\]
+
+This is repeated until nothing changes anymore.
+
+\subsubsection{Thickening\textbook{660}}
+
+This is the morphological dual of thinning. It is implemented as thinning the background and then taking the complement:
+\[
+	A \odot B = A \cup (A \circledast B)
+\]
+Thickening can lead to disconnected points. These have to be removed by post-processing.
+
+\subsubsection{Skeleton $S(A)$ \textbook{662}}
+
+To find a disk $D$ such that:
+\begin{itemize}
+	\item Is centered at at $z$, $z$ being a point of $S(A)$;
+	\item There is no larger disk containing $D$ and included in $A$;
+	\item Touches the boundary of A at two or more places.
+\end{itemize}
+It is done by letting
+\[
+	S(A) = \bigcup_{k=0}^{K} S_k(A)
+\]
+with
+\[
+	S_k(A) = (A \ominus kB) - (A \ominus kB) \circ B,
+\]
+\begin{center}
+	B \quad = \quad \adjustbox{max width=1cm}{\input{figures/tikz/morphological/mask_all}},
+\end{center}
+and
+\[
+	K = \max\left\{ k | (A \ominus kB \neq \emptyset) \right\}.
+\]
+$K$ is the last iterative step before $A$ is eroded to an empty set. Reconstruction can be achieved by
+\[
+	A = \bigcup_{k=0}^{K}\left( S_k(A) \oplus kB \right).
+\]
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.8\linewidth}{\input{figures/tikz/morphological/skeleton_1}}
+		\caption{Maximum Disks}
+	\end{subfigure}
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.8\linewidth}{\input{figures/tikz/morphological/skeleton_2}}
+		\caption{Complete Skeleton}
+	\end{subfigure}
+	\caption{Skeleton algorithm}
+\end{figure}
+
+\paragraph{Problems:}
+\begin{itemize}
+	\item The resulting skeleton may be not connected
+	\item The skeleton may be a bit thicker than it needs to be.
+\end{itemize}
+
+\subsubsection{Pruning\textbook{664}}
+
+Pruning is a procedure that can remove parasitic components (``spurs'') of a length below some threshold.
+\begin{enumerate}
+	\item Find endpoints with a hit-or-miss transform with the following structuring elements. Remove the endpoints.
+	\begin{figure}[h!]
+		\centering
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\adjustbox{scale=0.5}{\input{figures/tikz/morphological/pruning_mask_1}}
+			\caption{$B^1, B^2, B^3, B^4$ (rotated $90^\circ$)}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\adjustbox{scale=0.5}{\input{figures/tikz/morphological/pruning_mask_2}}
+			\caption{$B^5, B^6, B^7, B^8$ (rotated $90^\circ$)}
+		\end{subfigure}
+		\caption{Pruning structuring elements}
+	\end{figure}
+	\[
+		X_1 = A \otimes \{B\}
+	\]
+	\item Repeat this. If you want to remove all spurs of length 3 or less, repeat for 3 times
+	\item Find the endpoints using the same structuring elements
+  \[
+    X_2 = \bigcup_{k=1}^{8}(X_1 \circledast B^{k})
+  \]
+	\item Dilate the endpoints three times with a 3x3 structuring element (all ones) and make a logical and with the original set
+	\begin{align*}
+		X_3 &= (X_2 \oplus H) \cap A \\
+		X_4 &= X_1 \cup X_3
+	\end{align*}
+\end{enumerate}
+
+\subsubsection{Morphological Reconstruction\textbook{667}}
+
+This is a transformation which uses two images and a structuring element (usually a 3x3 matrix filled with all ones):
+\begin{itemize}
+	\item F is the marker image,
+	\item G is the mask image,
+	\item Both are binary and F is a subset of G.
+\end{itemize}
+Note that morphological reconstruction will always converge after a finite number of steps.
+
+\paragraph{Geodesic dilation\textbook{667}}
+\[
+	D_G^{(1)}(F) = (F\oplus B)\cap G,
+\]
+is the dilation of $F$ by $B$, where the result must stay inside $G$.
+This can be repeated:
+\begin{align*}
+	D_G^{(0)}(F) &= F, \\
+	D_G^{(1)}(F) &= (F\oplus B)\cap G, \\
+	D_G^{(n)}(F) &= D_G^{(1)}[D_G^{(n-1)}(F)].
+\end{align*}
+Notice the recursive definition.
+
+\paragraph{Geodesic erosion\textbook{667}}
+	\[
+		E_G^{(1)}(F) = (F \ominus B) \cap G
+	\]
+is the erosion of $F$ by $B$, where the result contains at least $G$. Similar to the dilation:
+\begin{align*}
+  E_G^{(0)}(F) &= F, \\
+	E_G^{(1)}(F) &= (F\ominus B)\cup G, \\
+	E_G^{(n)}(F) &= E_G^{(1)}[E_G^{(n-1)}(F)].
+\end{align*}
+
+\paragraph{Morphological reconstruction by dilation and by erosion\textbook{668}}
+This is geodesic dilation/erosion until nothing changes.
+% use description
+\begin{align*}
+	&\text{By dilation:} & R_G^D(F) &= D_G^{(k)}(F) \\
+		&\quad \text{with} & D_G^{(k)}(F) &= D_G^{(k+1)}(F) \\
+	&\text{By erosion:}  & R_G^E(F) &= E_G^{(k)}(F) \\
+		&\quad \text{with} & E_G^{(k)}(F) &= E_G^{(k+1)}(F)
+\end{align*}
+
+\subsubsection{Example of applications\textbook{669}}
+
+\paragraph{Opening and closing by reconstruction}
+
+Opening by reconstruction removes all small objects, the rest stays the same. Closing by reconstruction closes gaps, the rest is unchanged. This is in contrast to morphological opening and closing, where the erosion removes the small objects and the dilation ``sort of'' reconstructs the other objects.
+\begin{align*}
+	O_R^{(n)}(F) &= R_F^D[(F\ominus nB)], \\
+	C_R^{(n)}(F) &= R_F^E[(F\oplus nB)].
+\end{align*}
+
+\paragraph{Filling holes of a binary image without seeds}
+\[
+	H = [R_F^D(F)]^C 
+\]
+where
+\[
+	F(x,y) = \begin{cases}
+		1-I(x,y) & \text{if $(x,y)$ is on the border of $I$}, \\
+		0 & \text{otherwise}.
+	\end{cases}
+\]
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_I}}
+		\caption{$I$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_Ic}}
+		\caption{$I^c$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_F}}
+		\caption{$F$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_FB}}
+		\caption{$C \oplus B$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_FBIc}}
+		\caption{$C \oplus B \cap I^c$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_H}}
+		\caption{$H$}
+	\end{subfigure}
+	\begin{subfigure}{.25\linewidth}
+		\centering
+		\adjustbox{width=.9\linewidth}{\input{figures/tikz/morphological/holefilling_HIc}}
+		\caption{$H \cap I^c$}
+	\end{subfigure}
+	\caption{Hole Filling on a simple image}
+\end{figure}
+
+\paragraph{Border clearing}
+
+Remove objects that touch the border with:
+\[
+	X = I - R_I^D(F)
+\]
+where
+\[
+	F(x,y) = \begin{cases}
+			I(x,y) & \text{if $(x,y)$ is on the border of $I$} \\
+			0 & \text{otherwise}
+	\end{cases}
+\]
+
+\subsection{Grayscale morphology\textbook{674}}
+
+The fundamental operations dilation, erosion, opening and closing can be extended to grayscale. Hence the more advanced operations which are based on the above operations can be extended too. The structuring elements are also grayscale. In practice, flat structuring elements are preferred.
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.7\linewidth}{\includegraphics[width=5cm]{figures/tikz/morphological/nonflatSE.png}}
+		\caption{Nonflat SE}
+	\end{subfigure}
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.7\linewidth}{\begin{tikzpicture}
+		\draw (0,0) circle (2);\end{tikzpicture}}
+		\caption{Flat SE}
+	\end{subfigure}
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.7\linewidth}{\begin{tikzpicture}
+			\draw (0,0) -- (0,2);
+			\draw (4,2) arc (0:180:2) ;
+			\draw (4,2) -- (4,0);
+		\end{tikzpicture}}
+		\caption{Intensity profile}
+	\end{subfigure}
+	\begin{subfigure}{.45\linewidth}
+		\centering
+		\adjustbox{width=.7\linewidth}{\begin{tikzpicture}
+		\draw (0,0) -- (0,4) -- (4,4) -- (4,0);\end{tikzpicture}}
+		\caption{Intensity profile}
+	\end{subfigure}\\
+	\caption{Nonflat and flat structuring elements and corresponding horizontal intensity profiles through their centers}
+\end{figure}
+
+\paragraph{Erosion\textbook{674}}
+For a flat SE is
+\[
+	[f \ominus b](x,y)	= \min_{(s,t)\in b} \{f(x+s,y+t)\},
+\]
+and for a non-flat SE:
+\[
+	[f \ominus b_N](x,y)	= \min_{(s,t)\in b_n} \{f(x+s,y+t) -b_N(s,t)\}.
+\]
+
+\paragraph{Dilation\textbook{674}}
+For a flat SE is
+\[
+	[f\oplus b](x,y)	= \max_{(s,t)\in b} \{f(x-s,y-t)\},
+\]
+and for a non-flat SE:
+\[
+	[f\oplus b_N](x,y)	= \max_{(s,t)\in b_N} \{f(x-s,y-t) + \hat{b}_N(s,t)\}.
+\]
+
+\paragraph{Opening and Closing\textbook{680}}
+Opening and closing are defined exactly the same as in the binary case:
+\begin{align*}
+	f \circ b = (f \ominus b) \oplus b &&
+	f \bullet b = (f \oplus b) \ominus b
+\end{align*}
+
+\subsection{Some Basic Gray-Scale Morphological Algorithms\textbook{682}}
+
+\subsubsection{Morphological smoothing\textbook{682}}
+
+Opening suppresses bright details (more background) and closing suppresses dark details (more foreground). They can be used in combination for image smoothing and/or noise suppression.
+
+\subsubsection{Morphological gradient\textbook{682}}
+
+This operation results in an image where the edges are enhanced, not unlike a classical magnitude gradient image.
+\[
+	g=(f\oplus b)-(f\ominus b)
+\]
+
+\subsubsection{Top-hat transformation\textbook{683}}
+
+\[
+	T_\text{hat}(f) = f -(f \circ b)
+\]
+The resulting image contains mostly bright details that are smaller than the structuring element.
+
+\subsubsection{Bottom-hat transformation\textbook{683}}
+
+\[
+	B_\text{hat}(f) = (f \bullet b)-f
+\]
+The resulting image contains mostly dark details, that are smaller than the structuring element.
+
+\subsubsection{Granulometry\textbook{685}}
+
+The goal of granulometry is to find the particle size distribution in an image. Opening with a structuring element similar in shape as the particles but the size can be scaled from small to large. The biggest effect in the resulting opened image is, when the size of the structuring element changes from just too small to just too large. This effect can be measured by summing up the entire opened image, the surface area. Jumps in the change of surface area show the dominant particle sizes.
+
+\subsubsection{Textural segmentation\textbook{687}}
+
+% Figure 9.45\\ ???
+The goal of textural segmentation is, to segment the image into two textural regions. The basic idea is to remove the small circles with a circular structuring element larger than the small circle but smaller than the large circle. The following opening fills the white patches between the large elements.
+
+\subsubsection{Grayscale morphological reconstruction\textbook{688}}
+
+Follows the definition for binary images.
+
+\paragraph{Geodesic dilation}
+$\wedge$ denotes the point-wise minimum operator.
+\begin{align*}
+	D_g^{(1)}(f) &= (f\oplus b)\wedge g, \\
+	D_g^{(n)}(f) &= D_g^{(1)}[D_g^{n-1}(f)].
+\end{align*}
+
+\paragraph{Opening by reconstruction}
+\[
+	O_R^{(n)} (f) = R_f^D \left[ (f \ominus nb) \right].
+\]
+
+\paragraph{Geodesic erosion}
+$\vee$ denotes the point-wise maximum operator.
+\begin{align*}
+	E_g^{(1)}(f) &= (f\ominus b)\vee g, \\
+	E_g^{(n)}(f) &= E_g^{(1)}[E_g^{(n-1)}(f)].
+\end{align*}
+
+\paragraph{Closing by reconstruction}
+\[
+	C_R^{(n)} (f) = R_f^E \left[ (f \oplus nb) \right]
+\]

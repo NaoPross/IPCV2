@@ -1,0 +1,112 @@
+% !TeX program = xelatex
+% !TeX encoding = utf8
+% !TeX root = IPCV2.tex
+
+%% TODO: publish to CTAN
+\documentclass[margin=small]{tex/hsrzf}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Packages
+
+%% TODO: publish to CTAN
+\usepackage{tex/hsrstud}
+
+%% Language configuration
+\usepackage{polyglossia}
+\setdefaultlanguage[variant=american]{english}
+
+%% License configuration
+\usepackage[
+    type={CC},
+    modifier={by-nc-sa},
+    version={4.0},
+]{doclicense}
+
+%% Pretty figures
+\usepackage{adjustbox}
+\usepackage{subcaption}
+\usepackage{float}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+\usetikzlibrary{
+	calc, matrix, intersections
+}
+\tikzstyle{3x3mask}=[
+	matrix of nodes,
+	nodes={draw, minimum size=8mm, anchor=center},
+	column sep=0mm
+]
+
+%% Pretty lists
+\usepackage{enumitem}
+
+%% Columns
+\usepackage{multicol}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Metadata
+
+\course{Electrical Engineering}
+\module{IPCV2}
+\semester{Spring Semester 2020}
+
+% feel free to put your name here if you make changes, but leave me in the contributors!
+\authoremail{naoki.pross@ost.ch}
+\author{N. Pross et al. -- \texttt{\theauthoremail}}
+
+\contributors{
+	Gian Claudio Köppel,
+	Hannes Badertscher,
+	Jürg Rast,
+	Matthias Diethelm,
+	Michael Schmid,
+	Naoki Pross,
+	Philipp Riedel,
+	Raphael Nestler.
+}
+
+\title{\texttt{\themodule} -- Image Processing and Computer Vision 2 Notes}
+\date{\thesemester}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Document
+
+\begin{document}
+
+% use roman numberals for introductiory pages
+\pagenumbering{roman}
+
+\maketitle
+
+% \begin{abstract}
+% \end{abstract}
+
+\section*{Contributors}
+
+This document was not only written by the current author, but rather, it is built upon the works of many students: \thecontributors
+
+\section*{License}
+\doclicenseThis
+
+
+\tableofcontents
+
+% actual content
+\twocolumn
+\clearpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+
+% TODO move
+\newcommand{\textbook}[1]{~\footnotesize\textcolor{red!60!black}{\texttt{#1}}}
+
+\include{parts/morphology}
+% \include{parts/segmentation}
+% \include{parts/features}
+% \include{parts/classification}
+% \include{parts/matlab}
+
+\end{document}
